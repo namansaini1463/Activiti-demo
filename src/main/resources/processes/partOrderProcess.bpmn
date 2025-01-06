@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:activiti="http://activiti.org/bpmn"
+                  id="Definitions_1"
+                  targetNamespace="http://activiti.org/bpmn">
+  <bpmn:process id="partOrderProcess" name="Part Order Process" isExecutable="true">
+    <!-- Start Event -->
+    <bpmn:startEvent id="startEvent" name="Start"/>
+
+    <!-- Get Part Info Task -->
+    <bpmn:serviceTask id="getPartInfoTask" name="Get Part Info" activiti:class="com.example.demo.delegates.GetPartInfoDelegate" />
+
+    <!-- Get Part Inventory Task -->
+    <bpmn:serviceTask id="getPartInventoryTask" name="Get Part Inventory" activiti:class="com.example.demo.delegates.GetPartInventoryDelegate" />
+
+    <!-- Decision: Is Part Available -->
+    <bpmn:exclusiveGateway id="isPartAvailableGateway" name="Is Part Available?" />
+
+    <!-- Path: Part Not Available -->
+    <bpmn:serviceTask id="cancelOrderTask" name="Cancel Order" activiti:class="com.example.demo.delegates.CancelOrderDelegate" />
+
+    <!-- Path: Part Available -->
+    <bpmn:serviceTask id="shipPartTask" name="Ship Part" activiti:class="com.example.demo.delegates.ShipPartDelegate" />
+
+    <!-- End Event -->
+    <bpmn:endEvent id="endEvent" name="End"/>
+
+    <!-- Sequence Flows -->
+    <bpmn:sequenceFlow id="flow1" sourceRef="startEvent" targetRef="getPartInfoTask" />
+    <bpmn:sequenceFlow id="flow2" sourceRef="getPartInfoTask" targetRef="getPartInventoryTask" />
+    <bpmn:sequenceFlow id="flow3" sourceRef="getPartInventoryTask" targetRef="isPartAvailableGateway" />
+
+    <bpmn:sequenceFlow id="flow4" sourceRef="isPartAvailableGateway" targetRef="cancelOrderTask" name="No">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${partAvailable == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="flow5" sourceRef="isPartAvailableGateway" targetRef="shipPartTask" name="Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${partAvailable == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="flow6" sourceRef="cancelOrderTask" targetRef="endEvent" />
+    <bpmn:sequenceFlow id="flow7" sourceRef="shipPartTask" targetRef="endEvent" />
+  </bpmn:process>
+</bpmn:definitions>
